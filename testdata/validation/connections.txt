@@ -1,0 +1,10 @@
+# Validation test - connections
+Library|Student Union
+Student Union|Library
+library|student union
+Library|Atlantis
+Moon Base|Gym
+Library
+Library|Science Building|Gym
+Science Building|science building
+Library|Room #5 Hall

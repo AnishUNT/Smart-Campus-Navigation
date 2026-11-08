@@ -1,0 +1,110 @@
+Design Document - Smart Campus Navigation (Milestone 1)
+=======================================================
+
+1. MAIN CLASSES AND MODULES
+---------------------------
+StringUtils (namespace)  trim (spaces, tabs, \r), toUpper/toLower,
+                         equalsIgnoreCase, split on '|' keeping empty fields,
+                         blank/comment-line detection.
+FileLoader (namespace)   Shared loader: reads whole lines with getline, skips
+                         blank and comment lines, splits and trims fields,
+                         rejects wrong field counts and empty fields, then
+                         calls a module-specific handler (a lambda) that
+                         returns "" (accepted) or a rejection reason. Prints
+                         "Warning: <file> line <n>: <reason>" and the load
+                         summary. A file that cannot be opened prints an error
+                         and is treated as empty.
+Facility                 One record: ID (uppercase), name, building (spelling
+                         from buildings.txt), category. Static helpers
+                         normalizeId (trim + uppercase) and isValidId
+                         ("F" + exactly three digits).
+HashTable                Custom hash table keyed by facility ID.
+FacilityDatabase         vector<Facility> in file order (for display) plus a
+                         HashTable (for ID lookup). Loads facilities.txt.
+CampusGraph              Adjacency-list graph, loads buildings.txt and
+                         connections.txt, display, degrees, BFS.
+DepartmentNode /         General tree for departments.
+DepartmentTree
+main.cpp                 Chooses the data directory, loads the four files in
+                         order, prints summaries, and runs the menu. All input
+                         is read with getline, so letters or blank lines at
+                         the numeric prompt cannot leave cin in a fail state;
+                         end of input exits cleanly instead of looping.
+
+2. HASH FUNCTION
+----------------
+The key is trimmed and converted to uppercase before hashing, inserting,
+or looking up. Polynomial (Horner's rule) hash with base 31:
+
+    h = 0
+    for each character c in key:  h = (h * 31 + ASCII(c)) mod capacity
+    index = h
+
+Taking the mod at every step keeps the value small (no overflow) and
+guarantees 0 <= index < capacity. Every character contributes and its
+position matters, so "F012" and "F021" hash differently. std::hash is not used.
+
+3. COLLISION STRATEGY: SEPARATE CHAINING
+----------------------------------------
+Each bucket is a chain (std::vector<Facility>). On insert we first search the
+key's chain for a duplicate; if found, the insert is rejected and nothing
+changes (the first record is kept). Otherwise the facility is appended to the
+chain.
+
+Why: chains grow, so there is no table-full condition and no fixed maximum
+number of facilities (HASH-5). Deletion is not needed, and lookups stay simple
+(hash once, scan one short chain). Open addressing would need a full-table
+rule and probing logic.
+
+Capacity: 17 buckets (HashTable::DEFAULT_CAPACITY; also a constructor
+parameter). 17 is prime, which spreads polynomial hashes evenly. The table
+never becomes full: with more than 17 facilities the chains just get longer.
+Resizing is not implemented (optional).
+
+4. COLLISION COUNTING
+---------------------
+A collision is counted once for each ACCEPTED insertion whose target bucket
+already contains at least one entry. Rejected records (duplicate IDs, bad
+format, unknown building) never reach the counter, because the duplicate check
+runs before counting. The facilities load summary prints:
+    (hash capacity C, entries N, collisions K)
+Demonstration: testdata/collision uses F001, F014, F027, which all hash to
+bucket 11 with capacity 17, giving 2 collisions. A later duplicate f014 is
+rejected and the count stays at 2 (see test_results.txt).
+
+5. GRAPH REPRESENTATION: ADJACENCY LIST
+---------------------------------------
+buildingNames: vector<string>, index = vertex number, in buildings.txt order.
+adjacency:     vector<vector<int>>, adjacency[i] = neighbor indices in the
+               order the connections were accepted (never sorted).
+connectionCount: number of undirected edges, counted once.
+
+Adding an edge A-B appends B to A's list and A to B's list. A duplicate
+(including reversed B|A) is detected by checking whether B is already in A's
+list. Degree = size of the neighbor list.
+
+Why: campus graphs are sparse, so a list uses O(V + E) memory compared with
+O(V^2) for a matrix. It keeps neighbor insertion order (needed for BFS order),
+grows dynamically, and BFS visits each edge directly. Building lookup by name
+is a case-insensitive linear scan (only the facility ID needs a hash table).
+The same graph object is used for display, degrees, and BFS, and will be
+reused for shortest path and the connectivity report in the Final.
+
+6. BFS
+------
+Uses std::queue<int>, vector<bool> visited, and vector<int> distance. The
+start is marked visited, given distance 0, and enqueued. Each dequeued
+building is recorded in visit order; each unvisited neighbor (in insertion
+order) is marked visited WHEN ENQUEUED, given distance + 1, and enqueued.
+Reachable count = number of recorded buildings (includes the start).
+
+7. DEPARTMENT TREE
+------------------
+DepartmentNode { name, parent pointer, vector<DepartmentNode*> children }.
+Any number of children are allowed, kept in insertion order. Loading rules:
+the first valid record must have parent NONE (it becomes the root); later
+records must name a parent already in the tree; names are unique ignoring
+case; a second NONE parent is rejected. Search is a recursive preorder search
+ignoring case; depth is the number of parent links up to the root. The
+hierarchy display is preorder with 4 spaces per depth. The destructor deletes
+all nodes in postorder; copying is disabled to prevent double deletes.

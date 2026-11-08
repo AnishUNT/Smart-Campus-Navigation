@@ -1,0 +1,8 @@
+# F001, F014, F027 all hash to bucket 11 with capacity 17:
+#   h = (h*31 + c) mod 17  ->  F001 = F014 = F027 = 11
+F001|Study Room A|Library|Study Room
+F014|Study Room B|Library|Study Room
+F027|Weight Room|Gym|Recreation
+F002|Front Desk|Gym|Services
+# Duplicate key (lowercase) - must be rejected, collision count unchanged
+f014|Impostor Room|Gym|Fake

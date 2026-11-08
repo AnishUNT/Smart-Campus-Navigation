@@ -1,0 +1,3 @@
+# Collision test: one building is enough
+Library
+Gym

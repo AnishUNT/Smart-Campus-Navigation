@@ -1,0 +1,8 @@
+# Validation test - buildings
+
+Library
+   Student Union   
+library
+Gym|Extra Field
+Science Building
+Room #5 Hall

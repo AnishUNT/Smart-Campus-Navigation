@@ -1,0 +1,34 @@
+CONTRIBUTIONS - Smart Campus Navigation and Facility Analytics System
+=====================================================================
+
+Team
+----
+This project was completed individually.
+
+Anish Sandaka  (AnishSandaka@my.unt.edu)
+
+Modules owned
+-------------
+Anish Sandaka owned every module:
+
+Facilities and custom hash table
+    include/Facility.h, src/Facility.cpp
+    include/HashTable.h, src/HashTable.cpp
+    include/FacilityDatabase.h, src/FacilityDatabase.cpp
+    testdata/collision (hash collision and duplicate-key test)
+
+Campus graph and BFS
+    include/CampusGraph.h, src/CampusGraph.cpp
+    testdata/components, testdata/windows_crlf
+
+Department tree
+    include/DepartmentTree.h, src/DepartmentTree.cpp
+    testdata/empty_tree
+
+Shared infrastructure
+    include/StringUtils.h, src/StringUtils.cpp  (trim/case/split helpers)
+    include/FileLoader.h, src/FileLoader.cpp    (shared file loading)
+    src/main.cpp                                (menu and input handling)
+    Makefile, .gitignore
+    testdata/validation, testdata/missing_files
+    README.txt, design_document.txt, test_results.txt

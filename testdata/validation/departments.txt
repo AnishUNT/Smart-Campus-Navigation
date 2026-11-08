@@ -1,0 +1,8 @@
+# Validation test - departments
+University|NONE
+College of Science|University
+Physics|College of Art
+Second Root|NONE
+college of science|University
+Mathematics|College of Science|Extra
+Chemistry|college of science

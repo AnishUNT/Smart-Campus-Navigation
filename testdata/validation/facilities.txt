@@ -1,0 +1,9 @@
+# Validation test - facilities
+F001|Main Reading Room|Library|Library
+f001|Copy of Reading Room|Library|Library
+F002|Lab|Atlantis|Computer Lab
+F003|Only Three Fields|Library
+F04|Bad ID|Library|Classroom
+G123|Bad ID Letter|Library|Classroom
+f004|Lowercase ID Lab|science building|Computer Lab
+F005|Room #5|Room #5 Hall|Classroom
