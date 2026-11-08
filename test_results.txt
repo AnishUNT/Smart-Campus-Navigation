@@ -6,7 +6,10 @@ Tests were run by piping menu input, e.g. printf '2\nf004\n0\n' | ./campus
 Memory: an AddressSanitizer/UBSan build (-fsanitize=address,undefined) ran
         with data/, testdata/validation, testdata/empty_tree, and a missing
         directory, adding departments and exiting: no errors or leaks reported.
-NOTE: Re-run all tests on a CELL machine before submitting.
+CELL:   Built with make and run on cell01-cse.eng.unt.edu (UNT CSE CELL).
+        Sample data loaded 7/6/10/7 accepted, F004 search found, BFS from
+        Library matched T21 (6 of 7), and testdata/collision reported
+        "entries 4, collisions 2" with the duplicate F014 rejected (T17, T18).
 
 Format: Test # | Description | Input | Expected | Actual | Result
 
