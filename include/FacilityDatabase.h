@@ -41,6 +41,10 @@ public:
     const HashTable& getTable() const;
 
 private:
+    // Validates and adds one record from facilities.txt.
+    std::string addFacilityRecord(const std::vector<std::string>& fields,
+                                  const CampusGraph& graph);
+
     std::vector<Facility> facilities;   // file order
     HashTable table;                    // ID lookup
 };

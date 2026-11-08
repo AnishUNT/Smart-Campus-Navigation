@@ -26,28 +26,43 @@ void DepartmentTree::destroy(DepartmentNode* node) {
     delete node;
 }
 
-// Validation (after field count and empty fields): root rules, unknown
-// parent, then duplicate name.
+// Reads departments.txt (DepartmentName|ParentName).
 LoadStats DepartmentTree::loadFromFile(const std::string& path, const std::string& fileName) {
-    RecordHandler handler = [this](const std::vector<std::string>& fields) -> std::string {
-        const std::string& name = fields[0];
-        const std::string& parentName = fields[1];
-        bool parentIsNone = StringUtils::equalsIgnoreCase(parentName, "NONE");
+    LoadStats stats;
+    std::ifstream input;
+    if (!FileLoader::openFile(input, path, fileName)) {
+        return stats;
+    }
+    std::vector<std::string> fields;
+    int lineNumber = 0;
+    while (FileLoader::readRecord(input, lineNumber, fields)) {
+        std::string reason = FileLoader::checkFields(fields, 2);
+        if (reason.empty()) {
+            reason = addDepartmentRecord(fields[0], fields[1]);
+        }
+        FileLoader::countRecord(stats, fileName, lineNumber, reason);
+    }
+    return stats;
+}
 
-        if (root == nullptr) {
-            if (!parentIsNone) {
-                return "unknown parent '" + parentName +
-                       "' (the first department must be the root with parent NONE)";
-            }
-            return addRoot(name);
+// Applies the root rules, then adds the department under its parent.
+// Returns "" if accepted, otherwise the reason it was rejected.
+std::string DepartmentTree::addDepartmentRecord(const std::string& name,
+                                                const std::string& parentName) {
+    bool parentIsNone = StringUtils::equalsIgnoreCase(parentName, "NONE");
+
+    if (root == nullptr) {
+        if (!parentIsNone) {
+            return "unknown parent '" + parentName +
+                   "' (the first department must be the root with parent NONE)";
         }
-        if (parentIsNone) {
-            return "department '" + name + "' has parent NONE but a root ('" +
-                   root->name + "') already exists";
-        }
-        return addChild(name, parentName);
-    };
-    return FileLoader::loadRecords(path, fileName, 2, handler);
+        return addRoot(name);
+    }
+    if (parentIsNone) {
+        return "department '" + name + "' has parent NONE but a root ('" +
+               root->name + "') already exists";
+    }
+    return addChild(name, parentName);
 }
 
 // Creates the root if the tree is empty.

@@ -74,6 +74,9 @@ private:
     DepartmentNode* root;
     int nodeCount;
 
+    // Validates and adds one record from departments.txt.
+    std::string addDepartmentRecord(const std::string& name, const std::string& parentName);
+
     // Recursive helpers.
     void preorderHelper(const DepartmentNode* node, std::vector<const DepartmentNode*>& out) const;
     DepartmentNode* findHelper(DepartmentNode* node, const std::string& name) const;

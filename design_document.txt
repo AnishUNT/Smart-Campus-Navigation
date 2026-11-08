@@ -6,14 +6,17 @@ Design Document - Smart Campus Navigation (Milestone 1)
 StringUtils (namespace)  trim (spaces, tabs, \r), toUpper/toLower,
                          equalsIgnoreCase, split on '|' keeping empty fields,
                          blank/comment-line detection.
-FileLoader (namespace)   Shared loader: reads whole lines with getline, skips
-                         blank and comment lines, splits and trims fields,
-                         rejects wrong field counts and empty fields, then
-                         calls a module-specific handler (a lambda) that
-                         returns "" (accepted) or a rejection reason. Prints
-                         "Warning: <file> line <n>: <reason>" and the load
-                         summary. A file that cannot be opened prints an error
-                         and is treated as empty.
+FileLoader (namespace)   Shared helpers used by every load function: openFile
+                         (prints an error and returns false if the file is
+                         missing, so it is treated as empty), readRecord
+                         (getline, skip blank/comment lines, split on '|',
+                         trim fields), checkFields (field count, then empty
+                         fields), countRecord (updates accepted/rejected and
+                         prints "Warning: <file> line <n>: <reason>"), and
+                         printSummary. Each module loops over its file with
+                         these helpers and runs its own checks in a private
+                         function (e.g. addFacilityRecord) that returns ""
+                         if accepted or the rejection reason.
 Facility                 One record: ID (uppercase), name, building (spelling
                          from buildings.txt), category. Static helpers
                          normalizeId (trim + uppercase) and isValidId

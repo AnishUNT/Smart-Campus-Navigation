@@ -11,42 +11,67 @@
 // Empty graph: no buildings, no connections.
 CampusGraph::CampusGraph() : connectionCount(0) {}
 
-// Each record has one field: the building name.
+// Reads buildings.txt. Each record has one field: the building name.
 LoadStats CampusGraph::loadBuildings(const std::string& path, const std::string& fileName) {
-    RecordHandler handler = [this](const std::vector<std::string>& fields) -> std::string {
-        if (!addBuilding(fields[0])) {
-            return "duplicate building '" + fields[0] + "' (matches existing '" +
-                   buildingNames[findBuilding(fields[0])] + "')";
+    LoadStats stats;
+    std::ifstream input;
+    if (!FileLoader::openFile(input, path, fileName)) {
+        return stats;
+    }
+    std::vector<std::string> fields;
+    int lineNumber = 0;
+    while (FileLoader::readRecord(input, lineNumber, fields)) {
+        std::string reason = FileLoader::checkFields(fields, 1);
+        if (reason.empty() && !addBuilding(fields[0])) {
+            reason = "duplicate building '" + fields[0] + "' (matches existing '" +
+                     buildingNames[findBuilding(fields[0])] + "')";
         }
-        return "";
-    };
-    return FileLoader::loadRecords(path, fileName, 1, handler);
+        FileLoader::countRecord(stats, fileName, lineNumber, reason);
+    }
+    return stats;
 }
 
-// Each record has two fields: BuildingA|BuildingB.
+// Reads connections.txt. Each record has two fields: BuildingA|BuildingB.
 LoadStats CampusGraph::loadConnections(const std::string& path, const std::string& fileName) {
-    RecordHandler handler = [this](const std::vector<std::string>& fields) -> std::string {
-        int a = findBuilding(fields[0]);
-        int b = findBuilding(fields[1]);
-        if (a < 0 && b < 0) {
-            return "unknown buildings '" + fields[0] + "' and '" + fields[1] + "'";
+    LoadStats stats;
+    std::ifstream input;
+    if (!FileLoader::openFile(input, path, fileName)) {
+        return stats;
+    }
+    std::vector<std::string> fields;
+    int lineNumber = 0;
+    while (FileLoader::readRecord(input, lineNumber, fields)) {
+        std::string reason = FileLoader::checkFields(fields, 2);
+        if (reason.empty()) {
+            reason = addConnectionRecord(fields[0], fields[1]);
         }
-        if (a < 0) {
-            return "unknown building '" + fields[0] + "'";
-        }
-        if (b < 0) {
-            return "unknown building '" + fields[1] + "'";
-        }
-        if (a == b) {
-            return "self-connection '" + buildingNames[a] + "' is not allowed";
-        }
-        if (hasConnection(a, b)) {
-            return "duplicate connection " + buildingNames[a] + " - " + buildingNames[b];
-        }
-        addConnection(a, b);
-        return "";
-    };
-    return FileLoader::loadRecords(path, fileName, 2, handler);
+        FileLoader::countRecord(stats, fileName, lineNumber, reason);
+    }
+    return stats;
+}
+
+// Validates one connection record and adds it if it is OK.
+// Returns "" if accepted, otherwise the reason it was rejected.
+std::string CampusGraph::addConnectionRecord(const std::string& nameA, const std::string& nameB) {
+    int a = findBuilding(nameA);
+    int b = findBuilding(nameB);
+    if (a < 0 && b < 0) {
+        return "unknown buildings '" + nameA + "' and '" + nameB + "'";
+    }
+    if (a < 0) {
+        return "unknown building '" + nameA + "'";
+    }
+    if (b < 0) {
+        return "unknown building '" + nameB + "'";
+    }
+    if (a == b) {
+        return "self-connection '" + buildingNames[a] + "' is not allowed";
+    }
+    if (hasConnection(a, b)) {
+        return "duplicate connection " + buildingNames[a] + " - " + buildingNames[b];
+    }
+    addConnection(a, b);
+    return "";
 }
 
 // Adds a new vertex with an empty neighbor list.

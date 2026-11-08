@@ -11,32 +11,49 @@
 // Starts with an empty list and an empty hash table.
 FacilityDatabase::FacilityDatabase() : table(HashTable::DEFAULT_CAPACITY) {}
 
-// Validation order: (field count, empty fields - done by FileLoader),
-// ID format, unknown building, duplicate ID.
+// Reads facilities.txt (ID|Name|Building|Category).
 LoadStats FacilityDatabase::loadFromFile(const std::string& path, const std::string& fileName,
                                          const CampusGraph& graph) {
-    RecordHandler handler = [this, &graph](const std::vector<std::string>& fields) -> std::string {
-        std::string id = Facility::normalizeId(fields[0]);
-        const std::string& name = fields[1];
-        const std::string& buildingInput = fields[2];
-        const std::string& category = fields[3];
+    LoadStats stats;
+    std::ifstream input;
+    if (!FileLoader::openFile(input, path, fileName)) {
+        return stats;
+    }
+    std::vector<std::string> fields;
+    int lineNumber = 0;
+    while (FileLoader::readRecord(input, lineNumber, fields)) {
+        std::string reason = FileLoader::checkFields(fields, 4);
+        if (reason.empty()) {
+            reason = addFacilityRecord(fields, graph);
+        }
+        FileLoader::countRecord(stats, fileName, lineNumber, reason);
+    }
+    return stats;
+}
 
-        if (!Facility::isValidId(id)) {
-            return "invalid facility ID '" + fields[0] +
-                   "' (must be F followed by exactly three digits)";
-        }
-        int buildingIndex = graph.findBuilding(buildingInput);
-        if (buildingIndex < 0) {
-            return "unknown building '" + buildingInput + "' for facility " + id;
-        }
-        Facility facility(id, name, graph.getBuildingName(buildingIndex), category);
-        if (!table.insert(facility)) {
-            return "duplicate facility ID " + id + " (first record kept)";
-        }
-        facilities.push_back(facility);
-        return "";
-    };
-    return FileLoader::loadRecords(path, fileName, 4, handler);
+// Checks one record in this order: ID format, unknown building, duplicate ID.
+// Adds it if it is OK. Returns "" if accepted, otherwise the reason.
+std::string FacilityDatabase::addFacilityRecord(const std::vector<std::string>& fields,
+                                                const CampusGraph& graph) {
+    std::string id = Facility::normalizeId(fields[0]);
+    std::string name = fields[1];
+    std::string buildingInput = fields[2];
+    std::string category = fields[3];
+
+    if (!Facility::isValidId(id)) {
+        return "invalid facility ID '" + fields[0] +
+               "' (must be F followed by exactly three digits)";
+    }
+    int buildingIndex = graph.findBuilding(buildingInput);
+    if (buildingIndex < 0) {
+        return "unknown building '" + buildingInput + "' for facility " + id;
+    }
+    Facility facility(id, name, graph.getBuildingName(buildingIndex), category);
+    if (!table.insert(facility)) {
+        return "duplicate facility ID " + id + " (first record kept)";
+    }
+    facilities.push_back(facility);
+    return "";
 }
 
 // Prints facilities in the order they were accepted.

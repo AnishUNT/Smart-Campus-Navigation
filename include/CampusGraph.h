@@ -68,6 +68,9 @@ public:
     void displayReachable(const std::string& startName) const;
 
 private:
+    // Validates and adds one connection record from connections.txt.
+    std::string addConnectionRecord(const std::string& nameA, const std::string& nameB);
+
     std::vector<std::string> buildingNames;        // vertex index -> name
     std::vector<std::vector<int> > adjacency;      // vertex index -> neighbors
     int connectionCount;                           // undirected edges, counted once
