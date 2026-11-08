@@ -1,0 +1,19 @@
+# Compiled executables and objects
+campus
+campus.exe
+*.o
+*.obj
+*.out
+*.exe
+a.out
+*.dSYM/
+
+# Editor / IDE / OS files
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+*.code-workspace
+cmake-build-*/
